@@ -15,6 +15,6 @@ public class FakeCpfValidationClient implements CpfValidationClient {
             throw new InvalidCpfException(cpf);
         }
         
-        return random.nextBoolean() ? CpfStatus.ABLE_TO_VOTE : CpfStatus.UNABLE_TO_VOTE;
+        return CpfStatus.ABLE_TO_VOTE;
     }
 }

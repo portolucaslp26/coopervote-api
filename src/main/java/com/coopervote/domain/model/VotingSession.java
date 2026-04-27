@@ -36,6 +36,17 @@ public class VotingSession {
         this.endTime = startTime.plusMinutes(durationMinutes);
     }
 
+    public boolean getIsActive() {
+        if (isActive && LocalDateTime.now().isAfter(endTime)) {
+            isActive = false;
+        }
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        this.isActive = active;
+    }
+
     public void close() {
         this.isActive = false;
         this.endTime = LocalDateTime.now();
