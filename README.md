@@ -23,6 +23,7 @@ Sistema completo para gestão de assembleias cooperativistas, permitindo:
 | Flyway | - |
 | Springdoc OpenAPI | 2.7.0 |
 | Lombok | - |
+| Docker | - |
 
 ## Funcionalidades
 
@@ -142,6 +143,26 @@ Todas as mensagens de erro estão em português brasileiro:
 
 Swagger UI disponível em: `/swagger-ui.html`
 
+---
+
+## Quick Start com Docker
+
+```bash
+# Subir toda a stack (API + PostgreSQL + Frontend)
+cd ..
+docker-compose up -d --build
+
+# Ver logs
+docker-compose logs -f api
+
+# Parar
+docker-compose down
+```
+
+A API estará disponível em: **http://localhost:8080**
+
+---
+
 ## Configuração
 
 ### Variáveis de Ambiente
@@ -151,25 +172,125 @@ Swagger UI disponível em: `/swagger-ui.html`
 | `SPRING_DATASOURCE_URL` | URL de conexão PostgreSQL | jdbc:postgresql://localhost:5432/coopervote |
 | `SPRING_DATASOURCE_USERNAME` | Usuário do banco | coopervote |
 | `SPRING_DATASOURCE_PASSWORD` | Senha do banco | coopervote123 |
+| `SPRING_PROFILES_ACTIVE` | Perfil Spring | prod |
 
-### application.properties
+### Via Docker Compose
 
-```properties
-spring.flyway.enabled=true
-spring.flyway.locations=classpath:db/migration
-spring.jpa.hibernate.ddl-auto=validate
-springdoc.swagger-ui.enabled=true
+As variáveis são configuradas automaticamente no `docker-compose.yml`:
+
+```yaml
+api:
+  environment:
+    SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/coopervote
+    SPRING_DATASOURCE_USERNAME: coopervote
+    SPRING_DATASOURCE_PASSWORD: coopervote123
 ```
+
+### Personalizar
+
+Crie um arquivo `.env` na raiz do projeto:
+
+```env
+DB_USER=meuusuario
+DB_PASSWORD=minhasenha
+DB_NAME=meubanco
+```
+
+---
+
+## Desenvolvimento Local
+
+### Pré-requisitos
+
+- Java 21
+- Maven 3.8+
+- PostgreSQL 16 (ou Docker)
+
+### 1. Compilar
+
+```bash
+./mvnw clean package -DskipTests
+```
+
+### 2. Rodar
+
+```bash
+./mvnw spring-boot:run
+```
+
+Ou com o JAR:
+
+```bash
+java -jar target/coopervote-0.0.1-SNAPSHOT.jar
+```
+
+### 3. Com PostgreSQL via Docker
+
+```bash
+# PostgreSQL isolado (sem a API)
+docker run -d \
+  --name coopervote-postgres-dev \
+  -e POSTGRES_USER=coopervote \
+  -e POSTGRES_PASSWORD=coopervote123 \
+  -e POSTGRES_DB=coopervote \
+  -p 5432:5432 \
+  postgres:16-alpine
+```
+
+---
+
+## Build Docker
+
+### Build Manual
+
+```bash
+# Build da imagem
+docker build -t coopervote/api:latest .
+
+# Run
+docker run -d \
+  -p 8080:8080 \
+  -e SPRING_DATASOURCE_URL=jdbc:postgresql://host:5432/coopervote \
+  -e SPRING_DATASOURCE_USERNAME=coopervote \
+  -e SPRING_DATASOURCE_PASSWORD=coopervote123 \
+  coopervote/api:latest
+```
+
+### Build com Jib (Maven)
+
+```bash
+./mvnw compile jib:build
+```
+
+---
+
+## Flyway - Migrações
+
+As migrações são executadas automaticamente ao iniciar a aplicação.
+
+### Scripts de Migração
+
+Localização: `src/main/resources/db/migration/`
+
+```
+V1__create_tables.sql  - Cria schema inicial
+```
+
+### Verificar Migrações
+
+Acesse: `http://localhost:8080/actuator/flyway`
+
+---
 
 ## Banco de Dados
 
 ### Tabelas
 
-```sql
-agenda          -- Pautas de votação
-voting_session -- Sessões de votação
-vote            -- Votos registrados
-```
+| Tabela | Descrição |
+|--------|-----------|
+| `agenda` | Pautas de votação |
+| `voting_session` | Sessões de votação |
+| `vote` | Votos registrados |
 
 ### Índices
 
@@ -178,28 +299,27 @@ vote            -- Votos registrados
 - Index: `idx_vote_session_id` (busca por sessão)
 - Index: `idx_voting_session_agenda_id` (busca por pauta)
 
+---
+
 ## Rate Limiting
 
 - Limite: 60 requisições por minuto por IP
 - Retorno: HTTP 429 quando excedido
 
-## Build Local
+---
+
+## Health Check
 
 ```bash
-./mvnw clean package -DskipTests
-java -jar target/coopervote-0.0.1-SNAPSHOT.jar
+curl http://localhost:8080/actuator/health
 ```
 
-## Deploy
+Resposta esperada:
+```json
+{"status":"UP"}
+```
 
-### Railway
-1. Conectar repositório Git
-2. Configurar variáveis de ambiente
-3. Deploy automático
-
-### Supabase (Banco)
-- Criar projeto
-- Flyway cria as tabelas automaticamente
+---
 
 ## Arquitetura
 
@@ -220,6 +340,41 @@ src/main/java/com/coopervote/
         ├── controller/         # REST Controllers
         └── dto/                # Data Transfer Objects
 ```
+
+---
+
+## Deploy
+
+### Railway
+
+1. Conectar repositório Git
+2. Adicionar PostgreSQL como dependência
+3. Configurar variáveis de ambiente:
+   - `SPRING_DATASOURCE_URL`
+   - `SPRING_DATASOURCE_USERNAME`
+   - `SPRING_DATASOURCE_PASSWORD`
+4. Deploy automático
+
+### Docker Compose (Produção)
+
+```bash
+# Subir stack completa
+docker-compose up -d --build
+
+# Rebuild específico
+docker-compose up -d --build api
+```
+
+### Variáveis de Produção
+
+```bash
+export DB_USER=produser
+export DB_PASSWORD=ProD_S3cr3t!
+export DB_NAME=coopervote_prod
+docker-compose up -d
+```
+
+---
 
 ## Licença
 
