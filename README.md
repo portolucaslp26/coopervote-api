@@ -241,19 +241,68 @@ docker run -d \
 
 ## Build Docker
 
-### Build Manual
+### Pré-requisitos
+
+- Docker instalado
+- Variáveis de ambiente configuradas (ou usar valores padrão)
+
+### Build da Imagem
 
 ```bash
-# Build da imagem
+# Na raiz do projeto coopervote/
 docker build -t coopervote/api:latest .
+```
 
-# Run
+### Executar Container (Standalone)
+
+```bash
+# Com banco PostgreSQL externo (já rodando)
 docker run -d \
+  --name coopervote-api \
   -p 8080:8080 \
-  -e SPRING_DATASOURCE_URL=jdbc:postgresql://host:5432/coopervote \
+  -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5432/coopervote \
+  -e SPRING_DATASOURCE_USERNAME=coopervote \
+  -e SPRING_DATASOURCE_PASSWORD=coopervote123 \
+  -e SPRING_PROFILES_ACTIVE=prod \
+  coopervote/api:latest
+```
+
+**Nota**: Use `host.docker.internal` no Windows/Mac para acessar o banco na máquina host. No Linux, use o IP da rede (ex: 172.17.0.1).
+
+### Executar com Banco via Docker
+
+```bash
+# 1. Subir o PostgreSQL
+docker run -d \
+  --name coopervote-postgres \
+  -e POSTGRES_USER=coopervote \
+  -e POSTGRES_PASSWORD=coopervote123 \
+  -e POSTGRES_DB=coopervote \
+  -p 5432:5432 \
+  postgres:16-alpine
+
+# 2. Subir a API conectando no banco
+docker run -d \
+  --name coopervote-api \
+  --link coopervote-postgres:postgres \
+  -p 8080:8080 \
+  -e SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/coopervote \
   -e SPRING_DATASOURCE_USERNAME=coopervote \
   -e SPRING_DATASOURCE_PASSWORD=coopervote123 \
   coopervote/api:latest
+```
+
+### Ver Logs
+
+```bash
+docker logs -f coopervote-api
+```
+
+### Parar e Remover
+
+```bash
+docker stop coopervote-api
+docker rm coopervote-api
 ```
 
 ### Build com Jib (Maven)
