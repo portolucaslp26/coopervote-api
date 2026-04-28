@@ -2,6 +2,31 @@
 
 API REST para gerenciamento de sessões de votação em cooperativas.
 
+## Início Rápido
+
+### Pré-requisitos
+- Docker
+- Docker Compose
+
+### Executar com Docker Compose
+
+```bash
+# Na raiz do projeto coopervote/
+docker-compose up -d
+```
+
+A API estará disponível em: **http://localhost:8080**
+
+Swagger UI: **http://localhost:8080/swagger-ui.html**
+
+### Parar a aplicação
+
+```bash
+docker-compose down
+```
+
+---
+
 ## Visão Geral
 
 Sistema completo para gestão de assembleias cooperativistas, permitindo:
