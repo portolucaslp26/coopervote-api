@@ -63,7 +63,7 @@ public class VoteService {
     }
 
     private void validateSessionIsOpen(VotingSession session) {
-        if (!session.getIsActive() || LocalDateTime.now().isAfter(session.getEndTime())) {
+        if (!session.isOpen()) {
             log.warn("Voting session is closed: {}", session.getId());
             throw new SessionClosedException(session.getId());
         }

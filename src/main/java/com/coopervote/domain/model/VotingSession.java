@@ -41,6 +41,14 @@ public class VotingSession {
         this.endTime = LocalDateTime.now();
     }
 
+    public boolean isExpired() {
+        return LocalDateTime.now().isAfter(this.endTime);
+    }
+
+    public boolean isOpen() {
+        return Boolean.TRUE.equals(this.isActive) && !isExpired();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

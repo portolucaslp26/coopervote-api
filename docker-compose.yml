@@ -1,0 +1,76 @@
+version: '3.8'
+
+services:
+  sonarqube:
+    image: sonarqube:10.6-community
+    container_name: coopervote-sonarqube
+    ports:
+      - "9000:9000"
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+      - SONAR_SECURITY_PASSWORD=admin
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/api/system/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  sonarqube-db:
+    image: postgres:16-alpine
+    container_name: coopervote-sonarqube-db
+    environment:
+      - POSTGRES_DB=sonarqube
+      - POSTGRES_USER=sonarqube
+      - POSTGRES_PASSWORD=sonarqube123
+    volumes:
+      - sonarqube_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sonarqube -d sonarqube"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  coopervote-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: coopervote-api
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://coopervote-db:5432/coopervote
+      - SPRING_DATASOURCE_USERNAME=coopervote
+      - SPRING_DATASOURCE_PASSWORD=coopervote123
+      - PORT=8080
+    depends_on:
+      coopervote-db:
+        condition: service_healthy
+
+  coopervote-db:
+    image: postgres:16-alpine
+    container_name: coopervote-db
+    environment:
+      - POSTGRES_DB=coopervote
+      - POSTGRES_USER=coopervote
+      - POSTGRES_PASSWORD=coopervote123
+    volumes:
+      - coopervote_db_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U coopervote -d coopervote"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
+  sonarqube_db_data:
+  coopervote_db_data:
