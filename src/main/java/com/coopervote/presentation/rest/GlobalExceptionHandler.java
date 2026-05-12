@@ -1,15 +1,16 @@
 package com.coopervote.presentation.rest;
 
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
+
 import com.coopervote.application.exception.AgendaNotFoundException;
 import com.coopervote.application.exception.DuplicateVoteException;
 import com.coopervote.application.exception.SessionAlreadyExistsException;
 import com.coopervote.application.exception.SessionClosedException;
 import com.coopervote.application.exception.SessionNotFoundException;
 import com.coopervote.application.exception.VoteNotAllowedException;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
