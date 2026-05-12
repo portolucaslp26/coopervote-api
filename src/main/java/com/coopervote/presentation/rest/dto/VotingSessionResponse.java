@@ -17,7 +17,7 @@ public record VotingSessionResponse(
                 session.getAgenda().getTitle(),
                 session.getStartTime().toString(),
                 session.getEndTime().toString(),
-                session.getIsActive()
+                session.isOpen()
         );
     }
 }

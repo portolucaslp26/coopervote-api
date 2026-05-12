@@ -64,12 +64,7 @@ public class VoteServiceImpl implements VoteService {
     }
 
     private void validateSessionIsOpen(VotingSession session) {
-        if (!session.getIsActive() || LocalDateTime.now().isAfter(session.getEndTime())) {
-            if (session.getIsActive()) {
-                session.setActive(false);
-                votingSessionRepository.save(session);
-                log.info("Session {} auto-closed due to expiration", session.getId());
-            }
+        if (!session.isOpen()) {
             log.warn("Voting session is closed: {}", session.getId());
             throw new SessionClosedException(session.getId());
         }
@@ -96,12 +91,6 @@ public class VoteServiceImpl implements VoteService {
 
         VotingSession session = votingSessionRepository.findByIdWithAgenda(sessionId)
                 .orElseThrow(() -> new SessionNotFoundException(sessionId));
-
-        if (session.getIsActive() && LocalDateTime.now().isAfter(session.getEndTime())) {
-            session.setActive(false);
-            votingSessionRepository.save(session);
-            log.info("Session {} auto-closed due to expiration when fetching result", session.getId());
-        }
 
         long yesVotes = voteRepository.countYesVotes(sessionId);
         long noVotes = voteRepository.countNoVotes(sessionId);
