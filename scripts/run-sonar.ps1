@@ -15,7 +15,7 @@ Write-Host "Running SonarQube analysis..."
 Write-Host "Project: $ProjectKey"
 Write-Host "Host: $HostUrl"
 
-.\mvnw.cmd clean verify sonar `
+.\mvnw.cmd clean verify sonar:sonar `
     "-Dsonar.projectKey=$ProjectKey" `
     "-Dsonar.projectName=$ProjectName" `
     "-Dsonar.host.url=$HostUrl" `
