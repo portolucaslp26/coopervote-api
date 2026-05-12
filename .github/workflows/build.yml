@@ -67,7 +67,7 @@ jobs:
           mvn -B verify sonar:sonar \
             -Dsonar.projectKey=coopervote \
             -Dsonar.projectName='coopervote' \
-            -Dsonar.organization=coopervote \
+            -Dsonar.organization=portolucaslp26 \
             -Dsonar.host.url=https://sonarcloud.io \
             -Dsonar.token=$SONAR_TOKEN \
             -Dsonar.sourceEncoding=UTF-8 \
