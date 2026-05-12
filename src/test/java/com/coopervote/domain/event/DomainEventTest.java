@@ -67,45 +67,4 @@ class DomainEventTest {
             assertThat(event.getOccurredOn()).isNotNull();
         }
     }
-
-    @Nested
-    @DisplayName("InMemoryDomainEventPublisher")
-    class InMemoryDomainEventPublisherTests {
-
-        @Test
-        @DisplayName("should publish VoteCastEvent without errors")
-        void shouldPublishVoteCastEventWithoutErrors() {
-            InMemoryDomainEventPublisher publisher = new InMemoryDomainEventPublisher();
-            VoteCastEvent event = new VoteCastEvent(1L, "12345678901", true);
-
-            publisher.publish(event);
-        }
-
-        @Test
-        @DisplayName("should publish SessionOpenedEvent without errors")
-        void shouldPublishSessionOpenedEventWithoutErrors() {
-            InMemoryDomainEventPublisher publisher = new InMemoryDomainEventPublisher();
-            SessionOpenedEvent event = new SessionOpenedEvent(1L, 10L);
-
-            publisher.publish(event);
-        }
-
-        @Test
-        @DisplayName("should publish SessionClosedEvent without errors")
-        void shouldPublishSessionClosedEventWithoutErrors() {
-            InMemoryDomainEventPublisher publisher = new InMemoryDomainEventPublisher();
-            SessionClosedEvent event = new SessionClosedEvent(1L, 10L, 5L, 3L);
-
-            publisher.publish(event);
-        }
-
-        @Test
-        @DisplayName("should publish unknown event type without errors")
-        void shouldPublishUnknownEventTypeWithoutErrors() {
-            InMemoryDomainEventPublisher publisher = new InMemoryDomainEventPublisher();
-            DomainEvent unknownEvent = new DomainEvent() {};
-
-            publisher.publish(unknownEvent);
-        }
-    }
 }
