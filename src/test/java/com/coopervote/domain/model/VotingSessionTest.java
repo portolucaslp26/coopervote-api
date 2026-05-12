@@ -163,6 +163,117 @@ class VotingSessionTest {
         }
     }
 
+    @Nested
+    @DisplayName("getIsActive")
+    class GetIsActive {
+
+        @Test
+        @DisplayName("should return true when session is active and not expired")
+        void shouldReturnTrueWhenActiveAndNotExpired() {
+            VotingSession session = new VotingSession(sampleAgenda, 60);
+
+            assertThat(session.getIsActive()).isTrue();
+        }
+
+        @Test
+        @DisplayName("should return false and update field when active but expired")
+        void shouldReturnFalseAndUpdateFieldWhenActiveButExpired() {
+            VotingSession session = new VotingSession(sampleAgenda, 60);
+            setField(session, "endTime", LocalDateTime.now().minusMinutes(1));
+
+            Boolean result = session.getIsActive();
+
+            assertThat(result).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("setActive")
+    class SetActive {
+
+        @Test
+        @DisplayName("should set isActive to true")
+        void shouldSetIsActiveToTrue() {
+            VotingSession session = new VotingSession(sampleAgenda, 60);
+            session.setActive(false);
+
+            session.setActive(true);
+
+            assertThat(session.getIsActive()).isTrue();
+        }
+
+        @Test
+        @DisplayName("should set isActive to false")
+        void shouldSetIsActiveToFalse() {
+            VotingSession session = new VotingSession(sampleAgenda, 60);
+
+            session.setActive(false);
+
+            assertThat(session.getIsActive()).isFalse();
+        }
+    }
+
+    @Nested
+    @DisplayName("setAgenda")
+    class SetAgenda {
+
+        @Test
+        @DisplayName("should set agenda")
+        void shouldSetAgenda() {
+            VotingSession session = new VotingSession(sampleAgenda, 60);
+            Agenda newAgenda = new Agenda("Nova Pauta", "Nova Descricao");
+            setEntityId(newAgenda, 2L);
+
+            session.setAgenda(newAgenda);
+
+            assertThat(session.getAgenda()).isEqualTo(newAgenda);
+        }
+    }
+
+    @Nested
+    @DisplayName("equals and hashCode")
+    class EqualsAndHashCode {
+
+        @Test
+        @DisplayName("should be equal when id is the same")
+        void shouldBeEqualWhenIdIsSame() {
+            VotingSession session1 = new VotingSession(sampleAgenda, 60);
+            VotingSession session2 = new VotingSession(sampleAgenda, 30);
+            setEntityId(session1, 1L);
+            setEntityId(session2, 1L);
+
+            assertThat(session1).isEqualTo(session2);
+            assertThat(session1.hashCode()).isEqualTo(session2.hashCode());
+        }
+
+        @Test
+        @DisplayName("should not be equal when id is different")
+        void shouldNotBeEqualWhenIdIsDifferent() {
+            VotingSession session1 = new VotingSession(sampleAgenda, 60);
+            VotingSession session2 = new VotingSession(sampleAgenda, 60);
+            setEntityId(session1, 1L);
+            setEntityId(session2, 2L);
+
+            assertThat(session1).isNotEqualTo(session2);
+        }
+
+        @Test
+        @DisplayName("should not be equal when compared to null")
+        void shouldNotBeEqualWhenComparedToNull() {
+            VotingSession session = new VotingSession(sampleAgenda, 60);
+
+            assertThat(session).isNotEqualTo(null);
+        }
+
+        @Test
+        @DisplayName("should not be equal when compared to different class")
+        void shouldNotBeEqualWhenComparedToDifferentClass() {
+            VotingSession session = new VotingSession(sampleAgenda, 60);
+
+            assertThat(session).isNotEqualTo("not a session");
+        }
+    }
+
     private void setField(Object entity, String fieldName, Object value) {
         try {
             java.lang.reflect.Field field = entity.getClass().getDeclaredField(fieldName);
