@@ -116,7 +116,7 @@ class VoteControllerTest {
         @Test
         @DisplayName("should return voting result")
         void shouldReturnVotingResult() throws Exception {
-            VotingResultResponse response = new VotingResultResponse(1L, 1L, 5L, 3L, 8L);
+            VotingResultResponse response = new VotingResultResponse(1L, 1L, 5L, 3L, 8L, "APROVADO");
             when(voteService.getVotingResult(1L)).thenReturn(response);
 
             mockMvc.perform(get("/api/v1/votes/session/1/result"))
