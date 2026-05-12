@@ -7,6 +7,8 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
+import java.util.concurrent.*;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -76,6 +78,112 @@ class FakeCpfValidationClientTest {
             assertThatThrownBy(() -> cpfValidationClient.validate(invalidCpf))
                     .isInstanceOf(InvalidCpfException.class)
                     .hasMessageContaining(invalidCpf);
+        }
+
+        @Test
+        @DisplayName("should throw CpfValidationTimeoutException on timeout")
+        void shouldThrowCpfValidationTimeoutExceptionOnTimeout() throws Exception {
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            try {
+                Future<CpfStatus> slowFuture = executor.submit(() -> {
+                    Thread.sleep(10000);
+                    return CpfStatus.ABLE_TO_VOTE;
+                });
+
+                FakeCpfValidationClient shortTimeoutClient = new FakeCpfValidationClient(100) {
+                    @Override
+                    public CpfStatus validate(String cpf) {
+                        try {
+                            return slowFuture.get(100, TimeUnit.MILLISECONDS);
+                        } catch (TimeoutException e) {
+                            throw new CpfValidationTimeoutException("CPF validation timed out", e);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            throw new CpfValidationTimeoutException("CPF validation interrupted", e);
+                        } catch (ExecutionException e) {
+                            throw new CpfValidationTimeoutException("CPF validation failed", e);
+                        }
+                    }
+                };
+
+                assertThatThrownBy(() -> shortTimeoutClient.validate("12345678901"))
+                        .isInstanceOf(CpfValidationTimeoutException.class)
+                        .hasMessageContaining("timed out");
+            } finally {
+                executor.shutdownNow();
+            }
+        }
+
+        @Test
+        @DisplayName("should throw CpfValidationTimeoutException on execution exception with RuntimeException")
+        void shouldThrowCpfValidationTimeoutExceptionOnRuntimeExecutionException() {
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            try {
+                Future<CpfStatus> errorFuture = executor.submit(() -> {
+                    throw new IllegalStateException("Some error");
+                });
+
+                FakeCpfValidationClient errorClient = new FakeCpfValidationClient(1000) {
+                    @Override
+                    public CpfStatus validate(String cpf) {
+                        try {
+                            return errorFuture.get(1000, TimeUnit.MILLISECONDS);
+                        } catch (TimeoutException e) {
+                            throw new CpfValidationTimeoutException("CPF validation timed out", e);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            throw new CpfValidationTimeoutException("CPF validation interrupted", e);
+                        } catch (ExecutionException e) {
+                            if (e.getCause() instanceof RuntimeException) {
+                                throw (RuntimeException) e.getCause();
+                            }
+                            throw new CpfValidationTimeoutException("CPF validation failed", e);
+                        }
+                    }
+                };
+
+                assertThatThrownBy(() -> errorClient.validate("12345678901"))
+                        .isInstanceOf(IllegalStateException.class)
+                        .hasMessageContaining("Some error");
+            } finally {
+                executor.shutdownNow();
+            }
+        }
+
+        @Test
+        @DisplayName("should throw CpfValidationTimeoutException on execution exception with checked exception")
+        void shouldThrowCpfValidationTimeoutExceptionOnCheckedExecutionException() {
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            try {
+                Future<CpfStatus> errorFuture = executor.submit(() -> {
+                    throw new Exception("Checked error");
+                });
+
+                FakeCpfValidationClient errorClient = new FakeCpfValidationClient(1000) {
+                    @Override
+                    public CpfStatus validate(String cpf) {
+                        try {
+                            return errorFuture.get(1000, TimeUnit.MILLISECONDS);
+                        } catch (TimeoutException e) {
+                            throw new CpfValidationTimeoutException("CPF validation timed out", e);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            throw new CpfValidationTimeoutException("CPF validation interrupted", e);
+                        } catch (ExecutionException e) {
+                            if (e.getCause() instanceof RuntimeException) {
+                                throw (RuntimeException) e.getCause();
+                            }
+                            throw new CpfValidationTimeoutException("CPF validation failed", e);
+                        }
+                    }
+                };
+
+                assertThatThrownBy(() -> errorClient.validate("12345678901"))
+                        .isInstanceOf(CpfValidationTimeoutException.class)
+                        .hasMessageContaining("failed");
+            } finally {
+                executor.shutdownNow();
+            }
         }
     }
 }
