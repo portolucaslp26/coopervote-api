@@ -35,7 +35,7 @@ jobs:
           path: target/site/jacoco/
 
   sonar:
-    name: SonarQube Analysis
+    name: SonarCloud Analysis
     runs-on: ubuntu-latest
     needs: build
 
@@ -60,32 +60,15 @@ jobs:
         with:
           name: coverage-reports
           path: target/site/jacoco/
-      - name: Download NGrok
-        run: |
-          curl -fsSL -o ngrok.zip https://bin.equinox.io/c/bNyj1mQVY4c/ngrok-v3-stable-linux-amd64.zip
-          unzip -q ngrok.zip
-          rm ngrok.zip
-      - name: Configure NGrok
-        run: ./ngrok config add-authtoken ${{ secrets.NGROK_AUTHTOKEN }}
-        continue-on-error: true
-      - name: Start NGrok Tunnel
-        id: ngrok
-        run: |
-          ./ngrok http --url ${{ secrets.NGROK_TUNNEL_URL }} 9000 &
-          sleep 5
-          curl -s http://localhost:4040/api/tunnels | ConvertFrom-Json | Select-Object -ExpandProperty tunnels | Select-Object -First 1 | Select-Object -ExpandProperty public_url
-      - name: Wait for SonarQube
-        run: sleep 30
-      - name: Run SonarQube Analysis
+      - name: Run SonarCloud Analysis
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          SONAR_HOST_URL=$(curl -s http://localhost:4040/api/tunnels | jq -r '.tunnels[0].public_url')
           mvn -B verify sonar:sonar \
             -Dsonar.projectKey=coopervote \
             -Dsonar.projectName='coopervote' \
-            -Dsonar.host.url=$SONAR_HOST_URL \
-            -Dsonar.token=$SONAR_TOKEN
-      - name: Stop NGrok
-        if: always()
-        run: pkill ngrok || true
+            -Dsonar.organization=coopervote \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.token=$SONAR_TOKEN \
+            -Dsonar.sourceEncoding=UTF-8 \
+            -Dsonar.java.source=21
