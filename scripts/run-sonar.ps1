@@ -16,7 +16,7 @@ Write-Host "Project: $ProjectKey"
 Write-Host "Host: $HostUrl"
 
 .\mvnw.cmd clean verify sonar `
-    -Dsonar.projectKey=$ProjectKey `
-    -Dsonar.projectName=$ProjectName `
-    -Dsonar.host.url=$HostUrl `
-    -Dsonar.token=$env:SONAR_TOKEN
+    "-Dsonar.projectKey=$ProjectKey" `
+    "-Dsonar.projectName=$ProjectName" `
+    "-Dsonar.host.url=$HostUrl" `
+    "-Dsonar.token=$env:SONAR_TOKEN"
