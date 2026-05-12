@@ -2,22 +2,20 @@ package com.coopervote;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@SpringBootTest(classes = CoopervoteApplication.class)
+@ActiveProfiles("test")
 class CoopervoteApplicationTest {
 
     @Test
-    @DisplayName("main method should exist and be callable")
-    void mainMethodShouldExistAndBeCallable() {
+    @DisplayName("CoopervoteApplication should be loadable")
+    void coopervoteApplicationShouldBeLoadable() {
         assertThat(CoopervoteApplication.class).isNotNull();
-    }
-
-    @Test
-    @DisplayName("CoopervoteApplication should be a public class")
-    void coopervoteApplicationShouldBeAPublicClass() {
-        assertThat(CoopervoteApplication.class.getModifiers())
-                .isGreaterThanOrEqualTo(0);
     }
 
     @Test

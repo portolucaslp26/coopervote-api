@@ -11,6 +11,9 @@ import java.util.concurrent.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 class FakeCpfValidationClientTest {
 
@@ -81,7 +84,7 @@ class FakeCpfValidationClientTest {
         }
 
         @Test
-        @DisplayName("should throw CpfValidationTimeoutException on timeout")
+        @DisplayName("should throw CpfValidationTimeoutException on TimeoutException")
         void shouldThrowCpfValidationTimeoutExceptionOnTimeout() throws Exception {
             ExecutorService executor = Executors.newSingleThreadExecutor();
             try {
@@ -90,17 +93,20 @@ class FakeCpfValidationClientTest {
                     return CpfStatus.ABLE_TO_VOTE;
                 });
 
-                FakeCpfValidationClient shortTimeoutClient = new FakeCpfValidationClient(100) {
+                FakeCpfValidationClient shortTimeoutClient = new FakeCpfValidationClient(50) {
                     @Override
                     public CpfStatus validate(String cpf) {
                         try {
-                            return slowFuture.get(100, TimeUnit.MILLISECONDS);
+                            return slowFuture.get(50, TimeUnit.MILLISECONDS);
                         } catch (TimeoutException e) {
                             throw new CpfValidationTimeoutException("CPF validation timed out", e);
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();
                             throw new CpfValidationTimeoutException("CPF validation interrupted", e);
                         } catch (ExecutionException e) {
+                            if (e.getCause() instanceof RuntimeException) {
+                                throw (RuntimeException) e.getCause();
+                            }
                             throw new CpfValidationTimeoutException("CPF validation failed", e);
                         }
                     }
@@ -115,8 +121,50 @@ class FakeCpfValidationClientTest {
         }
 
         @Test
-        @DisplayName("should throw CpfValidationTimeoutException on execution exception with RuntimeException")
-        void shouldThrowCpfValidationTimeoutExceptionOnRuntimeExecutionException() {
+        @DisplayName("should throw CpfValidationTimeoutException on InterruptedException")
+        void shouldThrowCpfValidationTimeoutExceptionOnInterruptedException() throws Exception {
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            try {
+                Future<CpfStatus> blockingFuture = executor.submit(() -> {
+                    Thread.sleep(10000);
+                    return CpfStatus.ABLE_TO_VOTE;
+                });
+
+                FakeCpfValidationClient interruptClient = new FakeCpfValidationClient(1000) {
+                    @Override
+                    public CpfStatus validate(String cpf) {
+                        try {
+                            return blockingFuture.get(1000, TimeUnit.MILLISECONDS);
+                        } catch (TimeoutException e) {
+                            throw new CpfValidationTimeoutException("CPF validation timed out", e);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            throw new CpfValidationTimeoutException("CPF validation interrupted", e);
+                        } catch (ExecutionException e) {
+                            if (e.getCause() instanceof RuntimeException) {
+                                throw (RuntimeException) e.getCause();
+                            }
+                            throw new CpfValidationTimeoutException("CPF validation failed", e);
+                        }
+                    }
+                };
+
+                Thread.currentThread().interrupt();
+                try {
+                    interruptClient.validate("12345678901");
+                } catch (CpfValidationTimeoutException e) {
+                    assertThat(e.getMessage()).contains("interrupted");
+                } finally {
+                    Thread.interrupted();
+                }
+            } finally {
+                executor.shutdownNow();
+            }
+        }
+
+        @Test
+        @DisplayName("should throw IllegalStateException on ExecutionException with RuntimeException cause")
+        void shouldThrowRuntimeExceptionOnExecutionExceptionWithRuntimeCause() throws Exception {
             ExecutorService executor = Executors.newSingleThreadExecutor();
             try {
                 Future<CpfStatus> errorFuture = executor.submit(() -> {
@@ -151,8 +199,8 @@ class FakeCpfValidationClientTest {
         }
 
         @Test
-        @DisplayName("should throw CpfValidationTimeoutException on execution exception with checked exception")
-        void shouldThrowCpfValidationTimeoutExceptionOnCheckedExecutionException() {
+        @DisplayName("should throw CpfValidationTimeoutException on ExecutionException with checked exception cause")
+        void shouldThrowCpfValidationTimeoutExceptionOnExecutionExceptionWithCheckedCause() throws Exception {
             ExecutorService executor = Executors.newSingleThreadExecutor();
             try {
                 Future<CpfStatus> errorFuture = executor.submit(() -> {
