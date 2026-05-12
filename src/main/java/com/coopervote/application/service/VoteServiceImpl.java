@@ -10,6 +10,7 @@ import com.coopervote.domain.repository.VoteRepository;
 import com.coopervote.domain.repository.VotingSessionRepository;
 import com.coopervote.infrastructure.cpf.CpfStatus;
 import com.coopervote.infrastructure.cpf.CpfValidationClient;
+import com.coopervote.infrastructure.cpf.CpfValidationTimeoutException;
 import com.coopervote.infrastructure.cpf.InvalidCpfException;
 import com.coopervote.presentation.rest.dto.CastVoteRequest;
 import com.coopervote.presentation.rest.dto.VoteResponse;
@@ -81,6 +82,9 @@ public class VoteServiceImpl implements VoteService {
         } catch (InvalidCpfException ex) {
             log.warn("Invalid CPF format: {}", maskCpf(cpf));
             throw new VoteNotAllowedException(cpf, "CPF com formato invalido");
+        } catch (CpfValidationTimeoutException ex) {
+            log.error("CPF validation service unavailable: {}", ex.getMessage());
+            throw new VoteNotAllowedException(cpf, "Servico de validacao indisponivel");
         }
     }
 

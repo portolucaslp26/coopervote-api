@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class FakeCpfValidationClientTest {
 
-    private final FakeCpfValidationClient cpfValidationClient = new FakeCpfValidationClient();
+    private final FakeCpfValidationClient cpfValidationClient = new FakeCpfValidationClient(3000);
 
     @Nested
     @DisplayName("validate")
