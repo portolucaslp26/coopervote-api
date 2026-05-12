@@ -11,6 +11,7 @@ import com.coopervote.domain.repository.VoteRepository;
 import com.coopervote.domain.repository.VotingSessionRepository;
 import com.coopervote.infrastructure.cpf.CpfStatus;
 import com.coopervote.infrastructure.cpf.CpfValidationClient;
+import com.coopervote.infrastructure.cpf.CpfValidationTimeoutException;
 import com.coopervote.infrastructure.cpf.InvalidCpfException;
 import com.coopervote.presentation.rest.dto.CastVoteRequest;
 import com.coopervote.presentation.rest.dto.VoteResponse;
@@ -178,6 +179,18 @@ class VoteServiceTest {
             assertThatThrownBy(() -> voteService.castVote(1L, request))
                     .isInstanceOf(VoteNotAllowedException.class)
                     .hasMessageContaining("formato invalido");
+        }
+
+        @Test
+        @DisplayName("should throw VoteNotAllowedException when CPF validation times out")
+        void shouldThrowWhenCpfValidationTimesOut() {
+            CastVoteRequest request = new CastVoteRequest("12345678900", true);
+            when(votingSessionRepository.findByIdWithAgenda(1L)).thenReturn(Optional.of(activeSession));
+            when(cpfValidationClient.validate("12345678900")).thenThrow(new CpfValidationTimeoutException("Timeout"));
+
+            assertThatThrownBy(() -> voteService.castVote(1L, request))
+                    .isInstanceOf(VoteNotAllowedException.class)
+                    .hasMessageContaining("Servico de validacao indisponivel");
         }
 
         @Test

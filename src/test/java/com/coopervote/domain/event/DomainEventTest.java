@@ -98,5 +98,14 @@ class DomainEventTest {
 
             publisher.publish(event);
         }
+
+        @Test
+        @DisplayName("should publish unknown event type without errors")
+        void shouldPublishUnknownEventTypeWithoutErrors() {
+            InMemoryDomainEventPublisher publisher = new InMemoryDomainEventPublisher();
+            DomainEvent unknownEvent = new DomainEvent() {};
+
+            publisher.publish(unknownEvent);
+        }
     }
 }

@@ -2,6 +2,7 @@ package com.coopervote.config;
 
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -62,5 +63,14 @@ class MetricsConfigTest {
 
         assertThat(counter).isNotNull();
         assertThat(meterRegistry.find("coopervote.agendas.created").counter()).isNotNull();
+    }
+
+    @Test
+    @DisplayName("voteProcessingTimer should be created and registered")
+    void voteProcessingTimerShouldBeCreatedAndRegistered() {
+        Timer timer = metricsConfig.voteProcessingTimer(meterRegistry);
+
+        assertThat(timer).isNotNull();
+        assertThat(meterRegistry.find("coopervote.votes.processing.time").timer()).isNotNull();
     }
 }
