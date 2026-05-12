@@ -24,6 +24,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
+import com.coopervote.application.service.VoteServiceImpl;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -46,7 +47,7 @@ class VoteServiceTest {
     private CpfValidationClient cpfValidationClient;
 
     @InjectMocks
-    private VoteService voteService;
+    private VoteServiceImpl voteService;
 
     private Agenda sampleAgenda;
     private VotingSession activeSession;

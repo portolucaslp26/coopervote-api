@@ -18,6 +18,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import com.coopervote.application.service.VotingSessionServiceImpl;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -37,7 +38,7 @@ class VotingSessionServiceTest {
     private AgendaRepository agendaRepository;
 
     @InjectMocks
-    private VotingSessionService votingSessionService;
+    private VotingSessionServiceImpl votingSessionService;
 
     private Agenda sampleAgenda;
 
