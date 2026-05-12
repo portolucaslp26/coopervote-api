@@ -2,13 +2,12 @@
 param(
     [string]$ProjectKey = "coopervote",
     [string]$ProjectName = "coopervote",
-    [string]$HostUrl = "http://localhost:9000"
+    [string]$HostUrl = "http://localhost:9000",
+    [string]$Token = "sqp_4a64388aadf7cef32fcdd799fb9315b200a5d3fa"
 )
 
 if (-not $env:SONAR_TOKEN) {
-    Write-Error "Error: SONAR_TOKEN environment variable is not set"
-    Write-Host "Please set it with: `$env:SONAR_TOKEN = 'your_token_here'"
-    exit 1
+    $env:SONAR_TOKEN = $Token
 }
 
 Write-Host "Running SonarQube analysis..."
