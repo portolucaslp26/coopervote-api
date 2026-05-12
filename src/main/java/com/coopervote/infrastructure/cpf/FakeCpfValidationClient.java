@@ -2,12 +2,8 @@ package com.coopervote.infrastructure.cpf;
 
 import org.springframework.stereotype.Component;
 
-import java.util.Random;
-
 @Component
 public class FakeCpfValidationClient implements CpfValidationClient {
-
-    private final Random random = new Random();
 
     @Override
     public CpfStatus validate(String cpf) {
